@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SESSION_NAME = 'MONACO GRAND PRIX';
-const SESSION_TYPE = 'RACE';
-
-export default function Navbar({ currentLap, totalLaps }) {
+export default function Navbar({ currentLap, totalLaps, sessionName, isLive }) {
+  const SESSION_NAME = sessionName?.toUpperCase() || 'MONACO GRAND PRIX';
   const [time, setTime] = useState(new Date());
   const [live, setLive] = useState(true);
 
@@ -41,7 +39,7 @@ export default function Navbar({ currentLap, totalLaps }) {
             {SESSION_NAME}
           </span>
           <div className="flex items-center gap-3 mt-0.5">
-            <span className="panel-header text-neon-cyan">{SESSION_TYPE}</span>
+            <span className="panel-header text-neon-cyan">RACE</span>
             <span className="text-carbon-500 text-xs">•</span>
             <span className="font-mono text-xs text-slate-400">
               LAP <span className="text-white font-600">{currentLap}</span>
