@@ -1,4 +1,4 @@
-# F1 Telmentary App
+# F1 Telementary Dashboard
 
 A modern motorsport telemetry dashboard inspired by Formula 1 race engineering systems and live timing interfaces.
 
