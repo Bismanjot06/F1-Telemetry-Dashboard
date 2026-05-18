@@ -1,15 +1,15 @@
 /**
  * useRealtime — WebSocket hook with polling fallback
- * Connects to ws://localhost:3001, reconnects on drop,
+ * Connects to WS_URL from env, reconnects on drop,
  * falls back to REST polling if WebSocket unavailable.
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-const WS_URL   = 'ws://localhost:3001';
-const REST_URL = 'http://localhost:3001/api/snapshot';
-const RECONNECT_DELAY = 3000;
-const POLL_INTERVAL   = 4000;
+const WS_URL   = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+const REST_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api') + '/snapshot';
+const RECONNECT_DELAY = import.meta.env.VITE_RECONNECT_DELAY ? parseInt(import.meta.env.VITE_RECONNECT_DELAY) : 3000;
+const POLL_INTERVAL   = import.meta.env.VITE_POLL_INTERVAL ? parseInt(import.meta.env.VITE_POLL_INTERVAL) : 4000;
 
 export function useRealtime() {
   const [snapshot,   setSnapshot]   = useState(null);

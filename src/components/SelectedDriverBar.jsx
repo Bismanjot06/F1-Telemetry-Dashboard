@@ -27,7 +27,7 @@ export default function SelectedDriverBar() {
     <AnimatePresence>
       <motion.div
         key={selectedDriver.driverNumber}
-        className="mt-3 glass rounded-xl px-5 py-3 flex items-center gap-5 overflow-x-auto"
+        className="mt-2 glass rounded-lg px-3 py-2 flex items-center gap-3 overflow-x-auto text-sm"
         initial={{ opacity:0, y:10 }}
         animate={{ opacity:1, y:0 }}
         exit={{ opacity:0, y:10 }}
@@ -36,22 +36,22 @@ export default function SelectedDriverBar() {
       >
         {/* Driver identity */}
         <div className="shrink-0">
-          <div className="font-display font-800 text-2xl tracking-wider" style={{color:selectedDriver.teamColor}}>
+          <div className="font-display font-800 text-lg tracking-wider" style={{color:selectedDriver.teamColor}}>
             {selectedDriver.abbreviation}
           </div>
-          <div className="font-mono text-[10px] text-slate-400 leading-tight">{selectedDriver.fullName}</div>
-          <div className="font-mono text-[9px] text-slate-600 leading-tight">{selectedDriver.teamName}</div>
+          <div className="font-mono text-[8px] text-slate-400 leading-tight">{selectedDriver.fullName}</div>
+          <div className="font-mono text-[7px] text-slate-600 leading-tight">{selectedDriver.teamName}</div>
         </div>
-        <div className="w-px h-10 bg-white/10 shrink-0"/>
+        <div className="w-px h-8 bg-white/10 shrink-0"/>
         {items.map(item=>(
           <div key={item.label} className="text-center shrink-0">
-            <div className="font-mono text-sm font-600" style={{color:item.color}}>{item.value}</div>
-            <div className="panel-header mt-0.5">{item.label}</div>
+            <div className="font-mono text-xs font-600" style={{color:item.color}}>{item.value}</div>
+            <div className="panel-header mt-0.5 text-[7px]">{item.label}</div>
           </div>
         ))}
         {fastestLap?.driverNumber===selectedDriver.driverNumber && (
           <motion.div
-            className="ml-auto shrink-0 px-3 py-1.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono text-[10px]"
+            className="ml-auto shrink-0 px-2 py-1 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300 font-mono text-[8px]"
             animate={{ boxShadow:['0 0 0 rgba(191,0,255,0)','0 0 16px rgba(191,0,255,0.4)','0 0 0 rgba(191,0,255,0)'] }}
             transition={{ duration:2, repeat:Infinity }}
           >
