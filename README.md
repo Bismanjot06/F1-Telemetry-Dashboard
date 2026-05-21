@@ -1,28 +1,57 @@
-# F1 Telementary Dashboard
+# PitWall — F1 Telemetry Dashboard
 
-A modern motorsport telemetry dashboard inspired by Formula 1 race engineering systems and live timing interfaces.
+Lightweight telemetry and leaderboard dashboard inspired by professional Formula 1 pit-wall tools. The app pairs a Vite + React frontend with a small Express backend that provides REST endpoints and a WebSocket feed (mock data when no live session is available).
 
-Built using React, Tailwind CSS, and Recharts, this project focuses on creating a highly immersive and cinematic race-control experience with realistic telemetry visualization, leaderboard systems, and technical UI architecture.
+Key technologies: React, Vite, Tailwind CSS, Recharts, Express, WebSocket.
 
-Preview
+## Features
 
-This telemetry simulates the look and feel of a professional Formula 1 pit-wall dashboard by combining:
+- Real-time snapshot broadcasts over WebSocket (server polls OpenF1 or falls back to mock data)
+- REST endpoints for on-demand data (`/api/*`)
+- Telemetry visualizations, leaderboards, tire/strategy views, and componentized UI
+- Small demo backend with Ergast schedule/standings and OpenF1 telemetry helpers
 
-real-time inspired telemetry visuals
-dynamic racing layouts
-engineering-style data presentation
-modern motorsport UI design
+## Project structure
 
-This project is currently in Phase 3 development and uses mock telemetry data before integrating live motorsport APIs.
+- `src/` — frontend React app and components (DriverCard, TelemetryChart, TrackMap, etc.)
+- `server/` — backend: `index.js`, `openf1.js`, `ergast.js` (Express + WebSocket)
+- `public/` — static assets
 
+## Quick start
 
-Quick start:
+Prerequisites: Node.js (v16+ recommended) and npm.
+
+Install dependencies:
 
 ```bash
-# install
 npm install
+```
 
-# dev server
+Run the frontend dev server only:
+
+```bash
 npm run dev
 ```
+
+Run the backend server only:
+
+```bash
+npm run server
+```
+
+Run both concurrently (frontend + backend):
+
+```bash
+npm run dev:full
+```
+
+## Notes
+
+- The server polls OpenF1 every 4s; when no live session is present it serves a realistic mock snapshot.
+- API keys are not required; all external calls are made server-side.
+
+## Contributing
+
+Contributions welcome — open an issue or PR. Keep changes focused and add small, testable commits.
+
 
