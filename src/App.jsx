@@ -8,6 +8,7 @@ import Leaderboard        from './components/Leaderboard';
 import TelemetryWorkspace from './components/TelemetryWorkspace';
 import DriverComparison   from './components/DriverComparison';
 import TrackMap           from './components/TrackMap';
+import RaceMapView        from './components/RaceMapView';
 import RaceControlFeed    from './components/RaceControlFeed';
 import TireStrategy       from './components/TireStrategy';
 import StatCard           from './components/StatCard';
@@ -38,11 +39,17 @@ function LiveStatCards() {
 
 // ── Main view tabs ─────────────────────────────────────────────────────────────
 const VIEWS = [
+  { key:'racemap',  label:'🗺 Race Map',  desc:'Professional Live Race Track Map with Real-time Driver Animation' },
   { key:'timing',   label:'⏱ Timing',    desc:'Live Timing Tower + Track Map + Race Control' },
   { key:'telemetry',label:'📈 Telemetry', desc:'6-Channel Engineering Telemetry Analysis'    },
   { key:'compare',  label:'⚡ Compare',   desc:'Driver vs Driver Delta Timing Comparison'     },
   { key:'strategy', label:'🛞 Strategy',  desc:'Tire Strategy & Stint Timeline'               },
 ];
+
+// ── Timing view — 3-column layout (responsive) ────────────────────────────────
+function RaceMapViewComponent() {
+  return <RaceMapView />;
+}
 
 // ── Timing view — 3-column layout (responsive) ────────────────────────────────
 function TimingView() {
@@ -168,6 +175,7 @@ function AppContent() {
               transition={{ duration:0.22 }}
               className="h-full"
             >
+              {activeView === 'racemap'  && <RaceMapViewComponent />}
               {activeView === 'timing'    && <TimingView />}
               {activeView === 'telemetry' && <TelemetryView />}
               {activeView === 'compare'   && <CompareView />}

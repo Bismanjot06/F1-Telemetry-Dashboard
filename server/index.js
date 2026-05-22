@@ -1,6 +1,6 @@
 /**
  * PitWall F1 Dashboard — Backend Server
- * Express + WebSocket, polling OpenF1 every 4s.
+ * Express + WebSocket, real-time telemetry polling at 1s intervals
  * All API keys stay server-side (OpenF1 requires none).
  * Port: 3001
  */
@@ -11,6 +11,7 @@ const { WebSocketServer } = require('ws');
 const cors      = require('cors');
 const openf1    = require('./openf1');
 const ergast    = require('./ergast');
+const { TelemetryNormalizer, TelemetryReplayer } = require('./telemetry');
 
 const app    = express();
 const server = http.createServer(app);
@@ -24,7 +25,10 @@ let currentSession   = null;
 let latestSnapshot   = null;
 let schedule         = [];
 let raceControlCache = [];
-const POLL_INTERVAL  = 4000; // ms
+let telemetryNormalizer = null;
+let telemetryCache   = {}; // per-driver latest telemetry packet
+const POLL_INTERVAL  = 1000; // 1 second for telemetry updates
+const SNAPSHOT_INTERVAL = 4000; // 4 seconds for snapshot broadcasts
 
 // ── Mock fallback (when no live session) ──────────────────────────────────────
 function buildMockSnapshot() {
@@ -109,7 +113,60 @@ function broadcast(data) {
   });
 }
 
+function broadcastTelemetry(packets) {
+  if (!packets || packets.length === 0) return;
+  broadcast({ type: 'telemetry', data: packets });
+}
+
+function broadcastSnapshot(snapshot) {
+  broadcast({ type: 'snapshot', data: snapshot });
+}
+
 // ── Polling loop ──────────────────────────────────────────────────────────────
+async function pollTelemetry() {
+  if (!currentSession || !telemetryNormalizer) return;
+
+  try {
+    const sessionKey = currentSession.session_key;
+    const drivers = latestSnapshot?.drivers || [];
+
+    // Fetch location data for all drivers
+    let locations = [];
+    try {
+      const locData = await openf1.getLocation(sessionKey);
+      locations = locData || [];
+    } catch (err) {
+      // Location data might not be available for all sessions
+    }
+
+    // Fetch car data for drivers (sample a few to avoid rate limiting)
+    const carDataMap = {};
+    for (let i = 0; i < Math.min(drivers.length, 5); i++) {
+      const driver = drivers[i];
+      try {
+        const carData = await openf1.getCarData(sessionKey, driver.driverNumber, 1);
+        carDataMap[driver.driverNumber] = carData;
+      } catch (err) {
+        // Skip if error
+      }
+    }
+
+    // Normalize telemetry data
+    const packets = telemetryNormalizer.normalizeBatch(drivers, locations, carDataMap);
+    
+    // Cache and broadcast
+    packets.forEach(p => {
+      telemetryCache[p.driverNumber] = p;
+    });
+    
+    if (packets.length > 0) {
+      broadcastTelemetry(packets);
+    }
+  } catch (err) {
+    console.warn('[pollTelemetry] error:', err.message);
+  }
+}
+
 async function poll() {
   try {
     const session = await openf1.getLatestSession();
@@ -129,6 +186,13 @@ async function poll() {
       snap.safetycar    = false;
       snap.vsc          = false;
       latestSnapshot    = snap;
+
+      // Initialize telemetry normalizer if session changed
+      if (!telemetryNormalizer || telemetryNormalizer.sessionKey !== session.session_key) {
+        if (telemetryNormalizer) telemetryNormalizer.end();
+        const circuitCode = session.circuit_short_name?.substring(0, 3).toUpperCase() || 'MNO';
+        telemetryNormalizer = new TelemetryNormalizer(session.session_key, circuitCode);
+      }
     } else {
       latestSnapshot = buildMockSnapshot();
     }
@@ -137,7 +201,7 @@ async function poll() {
     latestSnapshot = buildMockSnapshot();
   }
 
-  broadcast({ type: 'snapshot', data: latestSnapshot });
+  broadcastSnapshot(latestSnapshot);
 }
 
 // ── REST API (fallback / on-demand) ───────────────────────────────────────────
@@ -178,6 +242,57 @@ app.get('/api/telemetry/:sessionKey/:driverNumber', async (req, res) => {
   } catch { res.json([]); }
 });
 
+// ── Telemetry Logging & Replay API ──────────────────────────────────────────────
+app.get('/api/telemetry-logs', (_, res) => {
+  try {
+    if (telemetryNormalizer) {
+      const packets = telemetryNormalizer.getLogger().getPackets();
+      res.json({
+        sessionKey: telemetryNormalizer.sessionKey,
+        packetCount: packets.length,
+        packets: packets.slice(-100), // Last 100 packets
+      });
+    } else {
+      res.json({ sessionKey: null, packetCount: 0, packets: [] });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/telemetry-logs/replay/:sessionKey', (req, res) => {
+  try {
+    const { TelemetryReplayer } = require('./telemetry');
+    const replayer = new TelemetryReplayer();
+    const logs = replayer.listLogs();
+    const matching = logs.filter(log => log.includes(req.params.sessionKey));
+    
+    if (matching.length === 0) {
+      return res.status(404).json({ error: 'No logs found for session' });
+    }
+    
+    const packets = replayer.loadLog(matching[0]);
+    res.json({
+      filename: matching[0],
+      sessionKey: req.params.sessionKey,
+      packetCount: packets.length,
+      packets: packets.slice().reverse().slice(0, 100), // Last 100 packets
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/health', (_, res) => {
+  res.json({
+    status: 'ok',
+    wsClients: wss.clients.size,
+    currentSession: currentSession?.session_key || null,
+    isLive: currentSession ? new Date(currentSession.date_end) > new Date() : false,
+    uptime: process.uptime(),
+  });
+});
+
 // ── WebSocket handshake ───────────────────────────────────────────────────────
 wss.on('connection', (ws) => {
   console.log('[ws] client connected, total:', wss.clients.size);
@@ -204,8 +319,12 @@ server.listen(PORT, async () => {
   // Load schedule in background
   ergast.getCurrentSchedule().then(s => { schedule = s; console.log(`   Schedule: ${s.length} rounds loaded`); }).catch(() => {});
 
-  // Initial poll, then repeat
+  // Initial poll, then repeat at different intervals
   await poll();
-  setInterval(poll, POLL_INTERVAL);
-  console.log(`   Polling OpenF1 every ${POLL_INTERVAL / 1000}s\n`);
+  setInterval(poll, SNAPSHOT_INTERVAL);
+  console.log(`   Polling snapshots every ${SNAPSHOT_INTERVAL / 1000}s`);
+  
+  // Telemetry polling at faster rate
+  setInterval(pollTelemetry, POLL_INTERVAL);
+  console.log(`   Polling telemetry every ${POLL_INTERVAL / 1000}s\n`);
 });

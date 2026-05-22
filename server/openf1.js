@@ -89,6 +89,15 @@ async function getWeather(sessionKey) {
   return data[0] || null;
 }
 
+/** Get location data for current drivers (live position tracking) */
+async function getLocation(sessionKey) {
+  try {
+    return await fetchJSON(`${BASE}/location?session_key=${sessionKey}&order_by=-date&limit=100`);
+  } catch {
+    return [];
+  }
+}
+
 // ─── Aggregator: build full snapshot for broadcast ────────────────────────────
 
 async function buildSnapshot(sessionKey) {
@@ -193,5 +202,6 @@ module.exports = {
   getPitStops,
   getRaceControl,
   getWeather,
+  getLocation,
   buildSnapshot,
 };

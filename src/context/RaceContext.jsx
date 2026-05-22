@@ -15,7 +15,7 @@ export function RaceProvider({ children }) {
   // UI state — selected driver, lap, session type, active view
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [sessionType,    setSessionType]    = useState('Race');
-  const [activeView,     setActiveView]     = useState('timing');    // timing | telemetry | compare | strategy | control
+  const [activeView,     setActiveView]     = useState('racemap');    // racemap | timing | telemetry | compare | strategy
   const [replayLap,      setReplayLap]      = useState(null);        // null = live
   const [compDriverA,    setCompDriverA]    = useState('VER');
   const [compDriverB,    setCompDriverB]    = useState('LEC');
