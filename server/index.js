@@ -30,8 +30,23 @@ let telemetryCache   = {}; // per-driver latest telemetry packet
 const POLL_INTERVAL  = 1000; // 1 second for telemetry updates
 const SNAPSHOT_INTERVAL = 4000; // 4 seconds for snapshot broadcasts
 
+function getMockRaceMeta() {
+  const races = (schedule && schedule.length ? schedule : ergast.FALLBACK_SCHEDULE)
+    .map(race => ({
+      raceName: race.raceName || race.meeting_name || 'F1 Session',
+      circuitName: race.Circuit?.circuitName || race.circuitName || 'Circuit pending',
+      date: race.date || null,
+    }))
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const upcoming = races.find(race => race.date && race.date >= todayKey);
+  return upcoming || races[races.length - 1] || { raceName: 'F1 Session', circuitName: 'Circuit pending', date: null };
+}
+
 // ── Mock fallback (when no live session) ──────────────────────────────────────
 function buildMockSnapshot() {
+  const raceMeta = getMockRaceMeta();
   const DRIVERS = [
     { driverNumber: 1,  abbreviation: 'VER', fullName: 'Max Verstappen',   teamName: 'Red Bull Racing', teamColor: '#3671c6', position: 1, lapNumber: 47, lapDuration: 91.245, compound: 'MEDIUM',   stintLapCount: 12, gap: null,     interval: null,   sector1: 28.112, sector2: 32.891, sector3: 30.242 },
     { driverNumber: 16, abbreviation: 'LEC', fullName: 'Charles Leclerc',  teamName: 'Ferrari',         teamColor: '#e8002d', position: 2, lapNumber: 47, lapDuration: 91.618, compound: 'SOFT',     stintLapCount: 8,  gap: 0.373,    interval: 0.373,  sector1: 28.341, sector2: 33.102, sector3: 30.175 },
@@ -56,8 +71,9 @@ function buildMockSnapshot() {
   return {
     session: 'mock',
     sessionType: 'Race',
-    sessionName: 'Monaco Grand Prix',
-    circuitName: 'Circuit de Monaco',
+    sessionName: raceMeta.raceName,
+    circuitName: raceMeta.circuitName,
+    sessionDate: raceMeta.date,
     isLive: false,
     isMock: true,
     timestamp: new Date().toISOString(),
@@ -177,6 +193,7 @@ async function poll() {
       snap.sessionType  = session.session_type;
       snap.sessionName  = session.meeting_name;
       snap.circuitName  = session.circuit_short_name;
+      snap.sessionDate  = session.date_start || session.date_end || null;
       snap.isLive       = session.date_end ? new Date(session.date_end) > new Date() : true;
       snap.isMock       = false;
       snap.totalLaps    = session.total_laps || 78;

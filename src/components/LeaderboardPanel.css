@@ -397,16 +397,16 @@
   .driver-team {
     font-size: 9px;
   }
+}
 
-  .leaderboard-legend {
-    gap: 8px;
-    padding: 8px 10px;
-    font-size: 10px;
+/* Mobile: constrain height and allow panel scroll */
+@media (max-width: 1024px) {
+  .leaderboard-panel {
+    max-height: 260px;
+    overflow: hidden;
   }
-
-  .legend-symbol {
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
+  .leaderboard-scroll {
+    max-height: 180px;
+    overflow-y: auto;
   }
 }

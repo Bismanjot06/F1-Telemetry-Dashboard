@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar({ currentLap, totalLaps, sessionName, isLive }) {
-  const SESSION_NAME = sessionName?.toUpperCase() || 'MONACO GRAND PRIX';
+  const SESSION_NAME = sessionName?.toUpperCase() || 'F1 SESSION';
   const [time, setTime] = useState(new Date());
   const [live, setLive] = useState(true);
 

@@ -77,7 +77,7 @@ const CIRCUIT_LIST = Object.keys(CIRCUITS);
 const COMPOUND_COLORS = { SOFT:'#ff1e1e',MEDIUM:'#ffe600',HARD:'#e2e8f0',INTER:'#00e5ff',WET:'#3d7fff',UNKNOWN:'#64748b' };
 
 export default function TrackMap() {
-  const { drivers, selectedDriver, setSelectedDriver } = useRace();
+  const { drivers, selectedDriver, setSelectedDriver, circuitName, sessionName } = useRace();
   const [circuit, setCircuit] = useState('monaco');
 
   const C = CIRCUITS[circuit];
@@ -103,7 +103,7 @@ export default function TrackMap() {
             ))}
           </select>
         </div>
-        <div className="text-[9px] font-mono text-slate-600 mt-0.5">{C.name}</div>
+        <div className="text-[9px] font-mono text-slate-600 mt-0.5">{circuitName || sessionName || C.name}</div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-2 min-h-0">

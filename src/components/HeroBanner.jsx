@@ -1,12 +1,5 @@
 import { motion } from 'framer-motion';
-
-const RACE_INFO = {
-  name:     'MONACO GRAND PRIX',
-  circuit:  'Circuit de Monaco',
-  round:    'Round 8 of 24',
-  date:     '26 May 2024',
-  country:  '🇲🇨',
-};
+import { useRace } from '../context/RaceContext';
 
 const LIVE_STATS = [
   { label: 'Leader',   value: 'VER', accent: '#3671c6' },
@@ -16,12 +9,25 @@ const LIVE_STATS = [
 ];
 
 export default function HeroBanner() {
+  const { sessionName, circuitName, sessionDate, isLive } = useRace();
+
+  const formattedDate = sessionDate
+    ? new Date(sessionDate).toLocaleDateString(undefined, {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'TBD';
+
+  const raceTitle = sessionName ? sessionName.toUpperCase() : 'F1 SESSION';
+  const raceSubtitle = circuitName || 'Circuit pending';
+
   return (
     <div className="relative w-full overflow-hidden" style={{ height: '200px' }}>
       {/* Background race image */}
       <img
         src="/hero_banner.png"
-        alt="Monaco Grand Prix"
+        alt={raceTitle}
         className="absolute inset-0 w-full h-full object-cover object-center"
         style={{ filter: 'brightness(0.75) saturate(1.2)' }}
       />
@@ -47,10 +53,10 @@ export default function HeroBanner() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">{RACE_INFO.country}</span>
-              <span className="panel-header text-neon-cyan tracking-widest">{RACE_INFO.round}</span>
+              <span className="text-lg">🏁</span>
+              <span className="panel-header text-neon-cyan tracking-widest">{isLive ? 'LIVE RACE' : 'UPCOMING SESSION'}</span>
               <span className="text-carbon-500 text-xs">•</span>
-              <span className="panel-header">{RACE_INFO.date}</span>
+              <span className="panel-header">{formattedDate}</span>
             </div>
             <motion.h1
               className="font-display font-800 text-white leading-none"
@@ -59,9 +65,9 @@ export default function HeroBanner() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {RACE_INFO.name}
+              {raceTitle}
             </motion.h1>
-            <div className="font-mono text-slate-400 text-xs mt-1">{RACE_INFO.circuit}</div>
+            <div className="font-mono text-slate-400 text-xs mt-1">{raceSubtitle}</div>
           </div>
 
           {/* Live badge */}

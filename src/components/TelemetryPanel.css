@@ -336,3 +336,15 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Mobile: constrain telemetry panel height inside layout and allow internal scroll */
+@media (max-width: 1024px) {
+  .telemetry-panel {
+    max-height: 260px;
+    overflow: hidden;
+  }
+  .telemetry-panel > *:not(.panel-header) {
+    max-height: 180px;
+    overflow: auto;
+  }
+}

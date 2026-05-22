@@ -109,6 +109,7 @@
 @media (max-width: 768px) {
   .live-race-map-container {
     border-radius: 8px;
+    min-height: 180px;
   }
 
   .live-race-map-header {
@@ -123,5 +124,9 @@
   .canvas-info {
     padding: 8px 15px;
     font-size: 11px;
+  }
+
+  .live-race-canvas {
+    min-height: 140px;
   }
 }

@@ -106,7 +106,7 @@ class AnimatedDriver {
   }
 }
 
-// ── SVG Path Utilities ────────────────────────────────────────────────────────
+// ── SVG Path Utilities ───────────────────────────────────────────────────────
 function getPointAtLengthOnPath(pathString, lengthRatio) {
   // Create a temporary SVG to measure path length
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -125,7 +125,7 @@ function getPointAtLengthOnPath(pathString, lengthRatio) {
   }
 }
 
-// ── LiveRaceMap Component ────────────────────────────────────────────────────
+// ── LiveRaceMap Component ───────────────────────────────────────────────────
 export default function LiveRaceMap() {
   const { drivers, selectedDriver, circuitName } = useRace();
   const canvasRef = useRef(null);
@@ -138,7 +138,7 @@ export default function LiveRaceMap() {
   
   // Find circuit config
   const circuitKey = Object.keys(CIRCUITS).find(key => 
-    CIRCUITS[key].name.toLowerCase().includes(circuitName?.toLowerCase() || 'monaco')
+    CIRCUITS[key].name.toLowerCase().includes((circuitName||'').toLowerCase() || 'monaco')
   ) || 'monaco';
   const circuit = CIRCUITS[circuitKey];
 
@@ -296,13 +296,13 @@ export default function LiveRaceMap() {
         className="live-race-canvas"
       />
       <div className="canvas-info">
-        <p>{circuit.name} • {drivers.length} drivers • {circuitKey.toUpperCase()}</p>
+        <p>{circuitName || circuit.name} • {drivers.length} drivers • {circuitKey.toUpperCase()}</p>
       </div>
     </div>
   );
 }
 
-// ── Rendering Functions ────────────────────────────────────────────────────────
+// ── Rendering Functions ───────────────────────────────────────────────────────
 
 function drawTrackGrid(ctx, w, h, padding) {
   // Subtle grid pattern
@@ -398,51 +398,13 @@ function drawTelemetryOverlay(ctx, selectedDriver, animDriver, w, h) {
   const padding = 20;
   const right = w - padding;
   const top = padding;
-
-  // Telemetry panel background
-  ctx.fillStyle = 'rgba(15, 35, 60, 0.85)';
-  ctx.strokeStyle = 'rgba(100, 200, 255, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.fillRect(right - 180, top, 180, 140);
-  ctx.strokeRect(right - 180, top, 180, 140);
-
-  // Telemetry info
-  ctx.fillStyle = '#00E676';
-  ctx.font = 'bold 11px Arial';
-  ctx.textAlign = 'left';
-  
-  let y = top + 15;
-  const lineHeight = 14;
-  
-  ctx.fillText(`${animDriver.abbreviation} • ${selectedDriver.teamName}`, right - 170, y);
-  y += lineHeight + 2;
-  
-  ctx.fillStyle = 'rgba(200, 200, 200, 0.8)';
-  ctx.font = '10px Arial';
-  ctx.fillText(`Speed: ${Math.round(animDriver.speed)} km/h`, right - 170, y);
-  y += lineHeight;
-  ctx.fillText(`Gear: ${animDriver.gear || '-'}`, right - 170, y);
-  y += lineHeight;
-  ctx.fillText(`Throttle: ${Math.round(animDriver.throttle)}%`, right - 170, y);
-  y += lineHeight;
-  ctx.fillText(`Brake: ${Math.round(animDriver.brake)}%`, right - 170, y);
-  y += lineHeight;
-  ctx.fillText(`Progress: ${Math.round(animDriver.progress * 100)}%`, right - 170, y);
-  y += lineHeight;
-  ctx.fillText(`DRS: ${animDriver.drs ? 'ACTIVE' : 'CLOSED'}`, right - 170, y);
-  y += lineHeight;
-  
-  // Sector indicator
-  const sectors = ['S1', 'S2', 'S3'];
-  ctx.fillStyle = animDriver.sector < 3 ? ['#00E676', '#FFE600', '#BF00FF'][animDriver.sector] : '#888';
-  ctx.fillText(`Sector: ${sectors[animDriver.sector] || 'S-'}`, right - 170, y);
 }
 
 function hexToRgb(hex) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? [
-    parseInt(result[1], 16),
-    parseInt(result[2], 16),
-    parseInt(result[3], 16)
-  ] : [136, 136, 136];
+  const parsed = hex.replace('#','');
+  const bigint = parseInt(parsed, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return [r,g,b];
 }

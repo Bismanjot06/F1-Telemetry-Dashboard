@@ -43,6 +43,7 @@ export function RaceProvider({ children }) {
     totalLaps:    snapshot?.totalLaps    || 78,
     sessionName:  snapshot?.sessionName  || 'Monaco Grand Prix',
     circuitName:  snapshot?.circuitName  || 'Circuit de Monaco',
+    sessionDate:  snapshot?.sessionDate  || null,
     isLive:       snapshot?.isLive       ?? false,
     isMock:       snapshot?.isMock       ?? true,
     flag:         snapshot?.flag         || 'GREEN',
